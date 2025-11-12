@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión con Firebase</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .login-container {
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            text-align: center;
+        }
+        h2 {
+            color: #333;
+            margin-bottom: 25px;
+        }
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: bold;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        .input-group input:focus {
+            border-color: #007bff;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #message {
+            margin-top: 20px;
+            color: red;
+            font-size: 14px;
+        }
+        #user-info {
+            margin-top: 20px;
+            color: green;
+            font-size: 16px;
+            text-align: left;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+            display: none; /* Oculto inicialmente */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-container">
+        <h2>Iniciar Sesión en lospibes</h2>
+        <form id="loginForm">
+            <div class="input-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required placeholder="tu@ejemplo.com">
+            </div>
+            <div class="input-group">
+                <label for="password">Contraseña:</label>
+                <input type="password" id="password" name="password" required placeholder="••••••••">
+            </div>
+            <button type="submit">Entrar</button>
+        </form>
+        <p id="message"></p>
+        <div id="user-info">
+            <p><strong>Bienvenido:</strong> <span id="display-email"></span></p>
+            <p><strong>UID:</strong> <span id="display-uid"></span></p>
+        </div>
+    </div>
+
+    <!-- 1. Cargar el SDK de Firebase Core -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    
+    <!-- 2. Cargar el SDK de Firebase Authentication -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+
+    <script>
+        // ESTO ES CRÍTICO: REEMPLAZA CON TU firebaseConfig REAL
+        // Ve a la Consola de Firebase -> Configuración del proyecto -> Tus apps -> Web (y copia el objeto firebaseConfig)
+        const firebaseConfig = {
+            apiKey: "AIzaSyAm4eWGBA3olviKXg0tdZ8y8WV4LY_lVts",
+            authDomain: "lospibes-df93b.firebaseapp.com",
+            databaseURL: "https://lospibes-df93b-default-rtdb.firebaseio.com",
+            projectId: "lospibes-df93b",
+            storageBucket: "lospibes-df93b.firebasestorage.app",
+            messagingSenderId: "798285589943",
+            appId: "1:798285589943:web:82d45e3ad8054a93c24c32"
+            // databaseURL no es estrictamente necesario para Auth, pero puedes incluirlo
+            // databaseURL: "https://lospibes-df93b-default-rtdb.firebaseio.com", 
+        };
+
+        // Inicializa Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        // Obtener una referencia al servicio de autenticación
+        const auth = firebase.auth();
+
+        // Obtener referencias a los elementos del DOM
+        const loginForm = document.getElementById('loginForm');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const messageDisplay = document.getElementById('message');
+        const userInfoDiv = document.getElementById('user-info');
+        const displayEmail = document.getElementById('display-email');
+        const displayUid = document.getElementById('display-uid');
+
+        // Escuchar el envío del formulario
+        loginForm.addEventListener('submit', function(event) {
+            event.preventDefault(); // Evita que la página se recargue
+
+            const email = emailInput.value;
+            const password = passwordInput.value;
+
+            messageDisplay.textContent = 'Iniciando sesión...';
+            messageDisplay.style.color = 'black'; // Restablece el color del mensaje
+
+            // Intentar iniciar sesión con Email y Contraseña
+            auth.signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    // Inicio de sesión exitoso
+                    const user = userCredential.user;
+                    messageDisplay.textContent = '¡Inicio de sesión exitoso!';
+                    messageDisplay.style.color = 'green';
+                    
+                    // Mostrar información del usuario
+                    loginForm.style.display = 'none'; // Oculta el formulario
+                    userInfoDiv.style.display = 'block'; // Muestra la información
+                    displayEmail.textContent = user.email;
+                    displayUid.textContent = user.uid;
+
+                    console.log("Usuario autenticado:", user.email, "UID:", user.uid);
+                    // Aquí podrías redirigir al usuario a otra página o cargar contenido personalizado
+                })
+                .catch((error) => {
+                    // Ocurrió un error
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    messageDisplay.textContent = `Error (${errorCode}): ${errorMessage}`;
+                    messageDisplay.style.color = 'red';
+                    console.error("Error de autenticación:", error);
+                });
+        });
+
+        // Opcional: Escuchar cambios en el estado de autenticación (para saber si el usuario ya está logueado)
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                // El usuario está conectado
+                loginForm.style.display = 'none';
+                userInfoDiv.style.display = 'block';
+                displayEmail.textContent = user.email;
+                displayUid.textContent = user.uid;
+                messageDisplay.textContent = 'Ya habías iniciado sesión.';
+                messageDisplay.style.color = 'green';
+                console.log("Usuario ya conectado:", user.email, "UID:", user.uid);
+            } else {
+                // No hay usuario conectado
+                loginForm.style.display = 'block';
+                userInfoDiv.style.display = 'none';
+                messageDisplay.textContent = ''; // Limpiar mensaje si no hay sesión
+                console.log("No hay usuario conectado.");
+            }
+        });
+
+    </script>
+
+</body>
+</html>
